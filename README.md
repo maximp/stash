@@ -1,5 +1,5 @@
 # juno.test
-Test task for Juno company
+Test [task](task.md) for Juno company
 
 # Protocol
 1. set name, value - set value for string type
