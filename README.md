@@ -1,7 +1,7 @@
-# juno.test
-Test task for Juno company
+# stash
+Implementation of [test task](task.md) for Juno company
 
-# Protocol
+# protocol
 1. set name, value - set value for string type
 	1. str type - set value
 	1. list type (resize list to uint(value))
