@@ -17,7 +17,7 @@ func main() {
 	}
 	defer connection.Close()
 
-	fmt.Print("Connected...\n> ")
+	fmt.Print("Connected...\nUse 'help' command for help\n> ")
 
 	stdin := bufio.NewScanner(os.Stdin)
 	for stdin.Scan() {
@@ -60,9 +60,10 @@ func help() {
 	fmt.Println("  get name [,key]")
 	fmt.Println("  push name, value")
 	fmt.Println("  pop name")
-	fmt.Println("  keys")
+	fmt.Println("  keys [name]")
 	fmt.Println("  ttl name, milliseconds")
 	fmt.Println("  remove name [,key]")
 	fmt.Println("  nop")
+	fmt.Println("  quit")
 	fmt.Println("  help")
 }
