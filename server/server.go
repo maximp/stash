@@ -8,10 +8,12 @@ import (
 	"net/textproto"
 )
 
-// ListenAndServe announces addr on the local network, accepts incoming connections,
-// transfers commands from connection to handler and command execution results
-// from handler to connection
+// ListenAndServe announces addr on the local network and accepts incoming connections.
+// All incoming data, line by line, are passed to user-defined handler. Data returned
+// from handler is transfered back to connected client.
 func ListenAndServe(addr string, handler Handler, cfg *Config) error {
+
+	// check handler is defined
 	if handler == nil {
 		return errors.New("invalid server handler")
 	}

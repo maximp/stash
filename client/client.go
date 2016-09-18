@@ -7,13 +7,12 @@ import (
 	"strings"
 )
 
-// A Client represents client connection to cache engine
+// A Client represents client connection to stash network server
 type Client struct {
 	conn *textproto.Conn
 }
 
-// Dial connects to the given address textproto.Dial
-// and then returns a new Client for the connection.
+// Dial connects to the given address and returns a new Client for the connection
 func Dial(addr string) (*Client, error) {
 	conn, err := textproto.Dial("tcp", addr)
 	if err != nil {
@@ -22,12 +21,13 @@ func Dial(addr string) (*Client, error) {
 	return &Client{conn}, nil
 }
 
-// Close implements io.Closer interface and closes client connection
+// Close implements io.Closer interface, closes client connection
 func (c Client) Close() error {
 	return c.conn.Close()
 }
 
-// Cmd sends given command to server and waits for reply
+// Cmd sends given command to server and waits for reply. Received reply is parsed
+// and returned as result code/text.
 func (c Client) Cmd(str string) (code int, line string, err error) {
 
 	// convert to single line

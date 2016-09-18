@@ -3,9 +3,10 @@ package db
 import (
 	"strconv"
 	"testing"
+	"time"
 )
 
-func createDenchDb(b *testing.B) *Database {
+func createBenchDb(b *testing.B) *Database {
 	d, err := New(Config{
 		QueueLength: 10,
 	})
@@ -15,14 +16,16 @@ func createDenchDb(b *testing.B) *Database {
 	return d
 }
 
-func BenchmarkSet(b *testing.B) {
-	dd := createDenchDb(b)
+func BenchmarkDbSet(b *testing.B) {
+	dd := createBenchDb(b)
 	defer dd.Close()
 
 	names := make([][]byte, 0, b.N)
 	for i := 0; i < b.N; i++ {
 		names = append(names, []byte("name"+strconv.Itoa(b.N)+",value"))
 	}
+
+	time.Sleep(10 * time.Millisecond)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -31,16 +34,19 @@ func BenchmarkSet(b *testing.B) {
 			b.Fatalf("set str, test failed %v", err)
 		}
 	}
+	b.StopTimer()
 }
 
-func BenchmarkGet(b *testing.B) {
-	dd := createDenchDb(b)
+func BenchmarkDbGet(b *testing.B) {
+	dd := createBenchDb(b)
 	defer dd.Close()
 
 	names := make([][]byte, 0, b.N)
 	for i := 0; i < b.N; i++ {
 		names = append(names, []byte("name"+strconv.Itoa(b.N)))
 	}
+
+	time.Sleep(10 * time.Millisecond)
 
 	for i := 0; i < b.N; i++ {
 		_, err := dd.Exec(CommandSet, []byte("name"+strconv.Itoa(b.N)+",value"))
@@ -56,4 +62,5 @@ func BenchmarkGet(b *testing.B) {
 			b.Fatalf("set str, test failed %v", err)
 		}
 	}
+	b.StopTimer()
 }

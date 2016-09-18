@@ -40,7 +40,7 @@ type value interface {
 	empty() bool
 }
 
-// A Database represents in-memory cache engine
+// A Database type implements in-memory cache engine
 type Database struct {
 	queue   chan task
 	started bool
@@ -72,7 +72,7 @@ func New(cfg Config) (*Database, error) {
 	return d, nil
 }
 
-// Close closes in-memory cache engine
+// Close closes in-memory cache database
 func (d *Database) Close() error {
 	d.closing = true
 
@@ -88,12 +88,25 @@ func (d *Database) Close() error {
 
 // Exec executes single command
 func (d *Database) Exec(cmd Command, arg []byte) ([]byte, error) {
-	if d.closing || !d.started {
+
+	if d.closing {
 		return nil, ErrAlreadyClosed
 	}
+
+	if !d.started {
+		return nil, ErrNotStarted
+	}
+
+	// create channel to get result
 	ret := make(chan result)
+
+	// create and send task
 	d.queue <- task{cmd: cmd, arg: arg, ret: ret}
+
+	// wait for result
 	result := <-ret
+
+	// return result
 	return result.value, result.err
 }
 

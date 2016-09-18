@@ -22,7 +22,7 @@ func (c *connection) log(v ...interface{}) {
 	c.logger.Println(c.addr, ": ", fmt.Sprint(v...))
 }
 
-// serve handles client connection to server
+// serve handles client connection
 func (c *connection) serve(handler Handler) {
 	defer c.Close()
 

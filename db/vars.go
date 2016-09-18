@@ -73,6 +73,7 @@ func (c Command) String() string {
 var (
 	ErrInvalidCommand = errors.New("invalid command name")
 	ErrAlreadyClosed  = errors.New("database already closed")
+	ErrNotStarted     = errors.New("database is not started")
 	ErrInvalidFormat  = errors.New("invalid command format")
 	ErrNotFound       = errors.New("not found")
 	ErrInvalidIndex   = errors.New("invalid index")
