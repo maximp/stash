@@ -1,5 +1,5 @@
-# juno.test
-Test [task](task.md) for Juno company
+# stash
+Implementation of test [task](task.md) for Juno company
 
 # Protocol
 1. set name, value - set value for string type
