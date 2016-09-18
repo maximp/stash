@@ -23,8 +23,8 @@ func main() {
 	for stdin.Scan() {
 
 		var (
-			cmd    string = strings.TrimSpace(stdin.Text())
-			code   int    = 0
+			cmd    = strings.TrimSpace(stdin.Text())
+			code   int
 			result string
 			err    error
 		)

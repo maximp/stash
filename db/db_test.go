@@ -22,7 +22,7 @@ func (t *testLog) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func create_db(t *testing.T) *Database {
+func createDb(t *testing.T) *Database {
 	d, err := New(Config{
 		QueueLength: 10,
 		Log:         log.New(&testLog{t}, "", log.LstdFlags|log.Lmicroseconds),
@@ -57,7 +57,7 @@ func TestDatabaseCreateClose(t *testing.T) {
 	if _, err := dd.Exec(CommandSet, []byte("a,b")); err != nil {
 		t.Errorf("failed execute command 'set a,b', err = %v", err)
 	}
-	if _, err := dd.Exec(CommandTtl, []byte("a,1000000")); err != nil {
+	if _, err := dd.Exec(CommandTTL, []byte("a,1000000")); err != nil {
 		t.Errorf("failed execute command 'ttl a,N', err = %v", err)
 	}
 
@@ -76,16 +76,16 @@ func TestDatabaseCreateClose(t *testing.T) {
 }
 
 func TestDatabaseInvalidCmd(t *testing.T) {
-	dd := create_db(t)
+	dd := createDb(t)
 	defer dd.Close()
 
 	if _, err := dd.Exec(Command(987654321), []byte("")); err != ErrInvalidCommand {
-		t.Error("err is %v", err)
+		t.Errorf("err is %v", err)
 	}
 }
 
 func TestDatabaseNop(t *testing.T) {
-	dd := create_db(t)
+	dd := createDb(t)
 	defer dd.Close()
 
 	if r, err := dd.Exec(CommandNop, nil); err != nil || !bytes.Equal(r, resultOk.value) {
@@ -98,7 +98,7 @@ func TestDatabaseNop(t *testing.T) {
 }
 
 func TestDatabaseNotFound(t *testing.T) {
-	dd := create_db(t)
+	dd := createDb(t)
 	defer dd.Close()
 
 	dd.Exec(CommandSet, []byte("str,value"))
@@ -113,7 +113,7 @@ func TestDatabaseNotFound(t *testing.T) {
 		{CommandPop, "name"},
 		{CommandRemove, "name"},
 		{CommandRemove, "name,key"},
-		{CommandTtl, "name,12345"},
+		{CommandTTL, "name,12345"},
 		{CommandKeys, "name"},
 		{CommandKeys, "str"},
 		{CommandKeys, "list"},
@@ -129,7 +129,7 @@ func TestDatabaseNotFound(t *testing.T) {
 }
 
 func TestDatabaseInvalidFormat(t *testing.T) {
-	dd := create_db(t)
+	dd := createDb(t)
 	defer dd.Close()
 
 	var tests = []struct {
@@ -148,9 +148,9 @@ func TestDatabaseInvalidFormat(t *testing.T) {
 		{CommandPop, "1,2"},
 		{CommandRemove, ""},
 		{CommandRemove, "a,b,c"},
-		{CommandTtl, ""},
-		{CommandTtl, "a"},
-		{CommandTtl, "a,b,c"},
+		{CommandTTL, ""},
+		{CommandTTL, "a"},
+		{CommandTTL, "a,b,c"},
 		{CommandKeys, "x,y"},
 	}
 
@@ -164,7 +164,7 @@ func TestDatabaseInvalidFormat(t *testing.T) {
 }
 
 func TestDatabaseInvalidType(t *testing.T) {
-	dd := create_db(t)
+	dd := createDb(t)
 	defer dd.Close()
 
 	if _, err := dd.Exec(CommandSet, []byte("str, value")); err != nil {
@@ -197,7 +197,7 @@ func TestDatabaseInvalidType(t *testing.T) {
 }
 
 func TestDatabaseInvalidIndex(t *testing.T) {
-	dd := create_db(t)
+	dd := createDb(t)
 	defer dd.Close()
 
 	if _, err := dd.Exec(CommandPush, []byte("list,value")); err != nil {
@@ -222,7 +222,7 @@ func TestDatabaseInvalidIndex(t *testing.T) {
 }
 
 func TestDatabaseNumError(t *testing.T) {
-	dd := create_db(t)
+	dd := createDb(t)
 	defer dd.Close()
 
 	if _, err := dd.Exec(CommandPush, []byte("list,value")); err != nil {
@@ -236,7 +236,7 @@ func TestDatabaseNumError(t *testing.T) {
 		{CommandGet, "list,xxx"},
 		{CommandSet, "list,xxx"},
 		{CommandSet, "list,xxx,new-value"},
-		{CommandTtl, "list,new-value"},
+		{CommandTTL, "list,new-value"},
 	}
 
 	for i, test := range tests {
@@ -250,7 +250,7 @@ func TestDatabaseNumError(t *testing.T) {
 }
 
 func TestDatabaseString(t *testing.T) {
-	dd := create_db(t)
+	dd := createDb(t)
 	defer dd.Close()
 
 	var tests = []struct {
@@ -279,7 +279,7 @@ func TestDatabaseString(t *testing.T) {
 }
 
 func TestDatabaseList(t *testing.T) {
-	dd := create_db(t)
+	dd := createDb(t)
 	defer dd.Close()
 
 	var tests = []struct {
@@ -321,7 +321,7 @@ func TestDatabaseList(t *testing.T) {
 }
 
 func TestDatabaseDict(t *testing.T) {
-	dd := create_db(t)
+	dd := createDb(t)
 	defer dd.Close()
 
 	var tests = []struct {
@@ -374,25 +374,25 @@ func TestDatabaseDict(t *testing.T) {
 }
 
 func TestDatabaseTtl(t *testing.T) {
-	dd := create_db(t)
+	dd := createDb(t)
 	defer dd.Close()
 
 	var (
-		evt_received bool = false
-		evt          Event
-		evt_name     string
+		evtReceived = false
+		evt         Event
+		evtName     string
 	)
 	dd.e = func(e Event, name []byte) {
-		evt_received = true
+		evtReceived = true
 		evt = e
-		evt_name = string(name)
+		evtName = string(name)
 	}
 
 	if _, err := dd.Exec(CommandSet, []byte("str, value")); err != nil {
 		t.Fatal("failed set str value")
 	}
 
-	if _, err := dd.Exec(CommandTtl, []byte("str, 1")); err != nil {
+	if _, err := dd.Exec(CommandTTL, []byte("str, 1")); err != nil {
 		t.Errorf("failed set ttl str value to 1 ms: %v", err)
 	}
 
@@ -402,13 +402,13 @@ func TestDatabaseTtl(t *testing.T) {
 		t.Error("found str value after expired ttl")
 	}
 
-	if !evt_received || evt != EventExpired || evt_name != "str" {
+	if !evtReceived || evt != EventExpired || evtName != "str" {
 		t.Errorf("event problem: rcvd = %v, evt = %v, name = %s",
-			evt_received, evt, evt_name)
+			evtReceived, evt, evtName)
 	}
 
-	evt_received = false
-	evt_name = ""
+	evtReceived = false
+	evtName = ""
 
 	// create list var
 	if _, err := dd.Exec(CommandPush, []byte("list, value")); err != nil {
@@ -416,14 +416,14 @@ func TestDatabaseTtl(t *testing.T) {
 	}
 
 	// set huge TTL
-	if _, err := dd.Exec(CommandTtl, []byte("list, 1000000")); err != nil {
+	if _, err := dd.Exec(CommandTTL, []byte("list, 1000000")); err != nil {
 		t.Errorf("failed set ttl list value to 1000000 ms: %v", err)
 	}
 
 	time.Sleep(10 * time.Millisecond)
 
 	// change TTL
-	if _, err := dd.Exec(CommandTtl, []byte("list, 100000")); err != nil {
+	if _, err := dd.Exec(CommandTTL, []byte("list, 100000")); err != nil {
 		t.Errorf("failed set ttl list value to 100000 ms: %v", err)
 	}
 
@@ -432,39 +432,39 @@ func TestDatabaseTtl(t *testing.T) {
 		t.Errorf("failed set pop list value: %v", err)
 	}
 
-	if evt_received || evt_name == "list" {
+	if evtReceived || evtName == "list" {
 		t.Errorf("event problem after list pop: rcvd = %v, evt = %v, name = %s",
-			evt_received, evt, evt_name)
+			evtReceived, evt, evtName)
 	}
 }
 
 func TestDatabaseTtlExpireAfterChange(t *testing.T) {
-	dd := create_db(t)
+	dd := createDb(t)
 	defer dd.Close()
 
 	var (
-		evt_received bool = false
-		evt          Event
-		evt_name     string
+		evtReceived = false
+		evt         Event
+		evtName     string
 	)
 	dd.e = func(e Event, name []byte) {
-		evt_received = true
+		evtReceived = true
 		evt = e
-		evt_name = string(name)
+		evtName = string(name)
 	}
 
 	if _, err := dd.Exec(CommandSet, []byte("str, value")); err != nil {
 		t.Fatal("failed set str value")
 	}
 
-	if _, err := dd.Exec(CommandTtl, []byte("str, 1000000")); err != nil {
+	if _, err := dd.Exec(CommandTTL, []byte("str, 1000000")); err != nil {
 		t.Errorf("failed set ttl str value to 1000000 ms: %v", err)
 	}
 
 	time.Sleep(10 * time.Millisecond)
 
 	// change TTL
-	if _, err := dd.Exec(CommandTtl, []byte("str, 10")); err != nil {
+	if _, err := dd.Exec(CommandTTL, []byte("str, 10")); err != nil {
 		t.Errorf("failed set ttl list value to 100000 ms: %v", err)
 	}
 
@@ -474,14 +474,14 @@ func TestDatabaseTtlExpireAfterChange(t *testing.T) {
 		t.Error("found str value after expired ttl")
 	}
 
-	if !evt_received || evt != EventExpired || evt_name != "str" {
+	if !evtReceived || evt != EventExpired || evtName != "str" {
 		t.Errorf("event problem: rcvd = %v, evt = %v, name = %s",
-			evt_received, evt, evt_name)
+			evtReceived, evt, evtName)
 	}
 }
 
 func TestDatabaseKeys(t *testing.T) {
-	dd := create_db(t)
+	dd := createDb(t)
 	defer dd.Close()
 
 	if _, err := dd.Exec(CommandSet, []byte("str, value")); err != nil {

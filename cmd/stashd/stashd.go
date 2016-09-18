@@ -36,11 +36,11 @@ func main() {
 	}()
 
 	handler := func(cmd []byte, arg []byte) ([]byte, error) {
-		if c, err := db.ParseCommand(cmd); err != nil {
+		c, err := db.ParseCommand(cmd)
+		if err != nil {
 			return nil, err
-		} else {
-			return d.Exec(c, arg)
 		}
+		return d.Exec(c, arg)
 	}
 
 	cfg := server.Config{

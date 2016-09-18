@@ -6,8 +6,10 @@ import (
 	"strconv"
 )
 
+// A Command represents engine command code passed into Database.Exec function
 type Command uint
 
+// Command constants
 const (
 	CommandNop    Command = iota
 	CommandGet    Command = iota
@@ -15,7 +17,7 @@ const (
 	CommandPush   Command = iota
 	CommandPop    Command = iota
 	CommandRemove Command = iota
-	CommandTtl    Command = iota
+	CommandTTL    Command = iota
 	CommandKeys   Command = iota
 )
 
@@ -35,7 +37,7 @@ func ParseCommand(cmd []byte) (Command, error) {
 	case "remove":
 		return CommandRemove, nil
 	case "ttl":
-		return CommandTtl, nil
+		return CommandTTL, nil
 	case "keys":
 		return CommandKeys, nil
 	default:
@@ -58,7 +60,7 @@ func (c Command) String() string {
 		return "pop"
 	case CommandRemove:
 		return "remove"
-	case CommandTtl:
+	case CommandTTL:
 		return "ttl"
 	case CommandKeys:
 		return "keys"
@@ -67,24 +69,29 @@ func (c Command) String() string {
 	}
 }
 
+// Errors returned by database
 var (
-	ErrInvalidCommand error = errors.New("invalid command name")
-	ErrAlreadyClosed  error = errors.New("database already closed")
-	ErrInvalidFormat  error = errors.New("invalid command format")
-	ErrNotFound       error = errors.New("not found")
-	ErrInvalidIndex   error = errors.New("invalid index")
-	ErrInvalidType    error = errors.New("invalid type")
-	ErrKeyNotFound    error = errors.New("key not found")
+	ErrInvalidCommand = errors.New("invalid command name")
+	ErrAlreadyClosed  = errors.New("database already closed")
+	ErrInvalidFormat  = errors.New("invalid command format")
+	ErrNotFound       = errors.New("not found")
+	ErrInvalidIndex   = errors.New("invalid index")
+	ErrInvalidType    = errors.New("invalid type")
+	ErrKeyNotFound    = errors.New("key not found")
 )
 
+// An Event represents event code passed into user-defined event handler
 type Event uint
 
+// Event constants
 const (
 	EventExpired = iota
 )
 
+// EventHandler declares type of user-defined event handler for database engine events
 type EventHandler func(e Event, name []byte)
 
+// Config contains user-defined parameters to initialize engine
 type Config struct {
 	Log         *log.Logger
 	QueueLength uint

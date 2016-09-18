@@ -4,9 +4,9 @@ import "testing"
 
 func TestParseCommand(t *testing.T) {
 	var parseCmdTests = []struct {
-		input    string
-		want_cmd string
-		want_arg string
+		input   string
+		wantCmd string
+		wantArg string
 	}{
 		{"", "", ""},
 		{" cmd ", "cmd", ""},
@@ -16,9 +16,9 @@ func TestParseCommand(t *testing.T) {
 	}
 
 	for i, test := range parseCmdTests {
-		if cmd, arg := parseCommand(test.input); string(cmd) != test.want_cmd || string(arg) != test.want_arg {
+		if cmd, arg := parseCommand(test.input); string(cmd) != test.wantCmd || string(arg) != test.wantArg {
 			t.Errorf("[%d] (parseCommand('%s') == ('%s', '%s')) != ('%s', '%s')", i, test.input,
-				string(cmd), string(arg), test.want_cmd, test.want_arg)
+				string(cmd), string(arg), test.wantCmd, test.wantArg)
 		}
 	}
 }

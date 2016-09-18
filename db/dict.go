@@ -15,9 +15,9 @@ func (v dict) set(k []byte) result {
 func (v dict) getKey(k []byte) result {
 	if val, ok := v[key(k)]; ok {
 		return result{val, nil}
-	} else {
-		return resultKeyNotFound
 	}
+
+	return resultKeyNotFound
 }
 
 func (v dict) setKey(k []byte, nv []byte) result {

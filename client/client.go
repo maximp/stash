@@ -15,11 +15,11 @@ type Client struct {
 // Dial connects to the given address textproto.Dial
 // and then returns a new Client for the connection.
 func Dial(addr string) (*Client, error) {
-	if conn, err := textproto.Dial("tcp", addr); err != nil {
+	conn, err := textproto.Dial("tcp", addr)
+	if err != nil {
 		return nil, err
-	} else {
-		return &Client{conn}, nil
 	}
+	return &Client{conn}, nil
 }
 
 // Close implements io.Closer interface and closes client connection
@@ -54,16 +54,16 @@ func (c Client) Cmd(str string) (code int, line string, err error) {
 }
 
 var (
-	crlf_encoder = strings.NewReplacer("\n", "\\n", "\r", "\\r")
-	crlf_decoder = strings.NewReplacer("\\n", "\n", "\\r", "\r")
+	crlfEncoder = strings.NewReplacer("\n", "\\n", "\r", "\\r")
+	crlfDecoder = strings.NewReplacer("\\n", "\n", "\\r", "\r")
 )
 
 // encode converts CR to \r, LF to \n
 func encode(s string) string {
-	return crlf_encoder.Replace(s)
+	return crlfEncoder.Replace(s)
 }
 
 // decode converts \n to LF, \r to CR
 func decode(s string) string {
-	return crlf_decoder.Replace(s)
+	return crlfDecoder.Replace(s)
 }

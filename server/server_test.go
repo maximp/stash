@@ -71,9 +71,8 @@ func TestServerComm(t *testing.T) {
 		arg = string(a)
 		if cmd == "error" {
 			return nil, errors.New("error")
-		} else {
-			return []byte("ok"), nil
 		}
+		return []byte("ok"), nil
 	}
 
 	var err error

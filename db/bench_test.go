@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func create_bench_db(b *testing.B) *Database {
+func createDenchDb(b *testing.B) *Database {
 	d, err := New(Config{
 		QueueLength: 10,
 	})
@@ -16,7 +16,7 @@ func create_bench_db(b *testing.B) *Database {
 }
 
 func BenchmarkSet(b *testing.B) {
-	dd := create_bench_db(b)
+	dd := createDenchDb(b)
 	defer dd.Close()
 
 	names := make([][]byte, 0, b.N)
@@ -34,7 +34,7 @@ func BenchmarkSet(b *testing.B) {
 }
 
 func BenchmarkGet(b *testing.B) {
-	dd := create_bench_db(b)
+	dd := createDenchDb(b)
 	defer dd.Close()
 
 	names := make([][]byte, 0, b.N)

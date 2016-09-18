@@ -8,7 +8,7 @@ import (
 	"net/textproto"
 )
 
-// Listen announces addr on the local network, accepts incoming connections,
+// ListenAndServe announces addr on the local network, accepts incoming connections,
 // transfers commands from connection to handler and command execution results
 // from handler to connection
 func ListenAndServe(addr string, handler Handler, cfg *Config) error {
@@ -53,9 +53,8 @@ func ListenAndServe(addr string, handler Handler, cfg *Config) error {
 		if err != nil {
 			if stopped {
 				return nil
-			} else {
-				return err
 			}
+			return err
 		}
 
 		conn := &connection{textproto.NewConn(netconn),

@@ -40,6 +40,7 @@ type value interface {
 	empty() bool
 }
 
+// A Database represents in-memory cache engine
 type Database struct {
 	queue   chan task
 	started bool
@@ -71,6 +72,7 @@ func New(cfg Config) (*Database, error) {
 	return d, nil
 }
 
+// Close closes in-memory cache engine
 func (d *Database) Close() error {
 	d.closing = true
 
@@ -84,6 +86,7 @@ func (d *Database) Close() error {
 	return nil
 }
 
+// Exec executes single command
 func (d *Database) Exec(cmd Command, arg []byte) ([]byte, error) {
 	if d.closing || !d.started {
 		return nil, ErrAlreadyClosed
@@ -114,7 +117,7 @@ func (d *Database) run() {
 			t.ret <- d.pop(t.arg)
 		case CommandRemove:
 			t.ret <- d.remove(t.arg)
-		case CommandTtl:
+		case CommandTTL:
 			t.ret <- d.ttl(t.arg)
 		case CommandKeys:
 			t.ret <- d.keys(t.arg)
@@ -165,15 +168,17 @@ func (d *Database) get(arg []byte) result {
 	case 1:
 		if v, ok := d.m[key(args[0])]; ok {
 			return v.get()
-		} else {
-			return resultNotFound
 		}
+
+		return resultNotFound
+
 	case 2:
 		if v, ok := d.m[key(args[0])]; ok {
 			return v.getKey(args[1])
-		} else {
-			return resultNotFound
 		}
+
+		return resultNotFound
+
 	default:
 		return result{nil, ErrInvalidFormat}
 	}
@@ -188,21 +193,27 @@ func (d *Database) set(arg []byte) result {
 
 	switch len(args) {
 	case 2:
-		if v, ok := d.m[key(args[0])]; ok {
+		k := key(args[0])
+		if v, ok := d.m[k]; ok {
 			return v.set(args[1])
-		} else {
-			d.m[key(args[0])] = str(args[1])
-			return resultOk
 		}
+
+		d.m[k] = str(args[1])
+
+		return resultOk
+
 	case 3:
-		if v, ok := d.m[key(args[0])]; ok {
+		k := key(args[0])
+		if v, ok := d.m[k]; ok {
 			return v.setKey(args[1], args[2])
-		} else {
-			var v value = make(dict)
-			v.setKey(args[1], args[2])
-			d.m[key(args[0])] = v
-			return resultOk
 		}
+
+		v := make(dict)
+		v.setKey(args[1], args[2])
+		d.m[k] = v
+
+		return resultOk
+
 	default:
 		return resultInvalidFormat
 	}
@@ -216,14 +227,17 @@ func (d *Database) push(arg []byte) result {
 	args := parseArg(arg)
 	switch len(args) {
 	case 2:
-		if v, ok := d.m[key(args[0])]; ok {
+		k := key(args[0])
+		if v, ok := d.m[k]; ok {
 			return v.push(args[1])
-		} else {
-			var v value = new(list)
-			v.push(args[1])
-			d.m[key(args[0])] = v
-			return resultOk
 		}
+
+		v := new(list)
+		v.push(args[1])
+		d.m[k] = v
+
+		return resultOk
+
 	default:
 		return resultInvalidFormat
 	}
@@ -248,9 +262,9 @@ func (d *Database) pop(arg []byte) result {
 				}
 			}
 			return r
-		} else {
-			return resultNotFound
 		}
+		return resultNotFound
+
 	default:
 		return resultInvalidFormat
 	}
@@ -272,15 +286,18 @@ func (d *Database) remove(arg []byte) result {
 				delete(d.t, k)
 			}
 			return resultOk
-		} else {
-			return resultNotFound
 		}
+
+		return resultNotFound
+
 	case 2:
-		if v, ok := d.m[key(args[0])]; ok {
+		k := key(args[0])
+		if v, ok := d.m[k]; ok {
 			return v.setKey(args[1], nil)
-		} else {
-			return resultNotFound
 		}
+
+		return resultNotFound
+
 	default:
 		return resultInvalidFormat
 	}
@@ -294,29 +311,35 @@ func (d *Database) ttl(arg []byte) result {
 	args := parseArg(arg)
 	switch len(args) {
 	case 2:
-		k := key(args[0])
-		if timeout, err := strconv.ParseUint(string(args[1]), 10, 64); err != nil {
+		timeout, err := strconv.ParseUint(string(args[1]), 10, 64)
+		if err != nil {
 			return result{nil, err}
-		} else if _, ok := d.m[k]; ok {
-			duration := time.Millisecond * time.Duration(timeout)
-			if t, ok := d.t[k]; ok {
-				if !t.Stop() {
-					<-t.C
-				}
-				t.Reset(duration)
-			} else {
-				t := time.AfterFunc(duration, func() {
-					d.Exec(CommandRemove, args[0])
-					if d.e != nil {
-						d.e(EventExpired, args[0])
-					}
-				})
-				d.t[k] = t
-			}
-			return resultOk
-		} else {
+		}
+
+		k := key(args[0])
+		if _, ok := d.m[k]; !ok {
 			return resultNotFound
 		}
+
+		duration := time.Millisecond * time.Duration(timeout)
+		if t, ok := d.t[k]; ok {
+			if !t.Stop() {
+				<-t.C
+			}
+			t.Reset(duration)
+		} else {
+			t := time.AfterFunc(duration, func() {
+				k := args[0]
+				d.Exec(CommandRemove, k)
+				if d.e != nil {
+					d.e(EventExpired, k)
+				}
+			})
+			d.t[k] = t
+		}
+
+		return resultOk
+
 	default:
 		return resultInvalidFormat
 	}
@@ -326,7 +349,7 @@ func (d *Database) keys(arg []byte) result {
 	if arg == nil || bytes.Equal(arg, []byte("")) {
 		var r []byte
 		var first = false
-		for k, _ := range d.m {
+		for k := range d.m {
 			if first {
 				r = append(r, ',')
 			} else {
@@ -340,24 +363,29 @@ func (d *Database) keys(arg []byte) result {
 	args := parseArg(arg)
 	switch len(args) {
 	case 1:
-		if v, ok := d.m[key(args[0])]; ok {
-			if dv, ok := v.(dict); ok {
-				var r []byte
-				var first = false
-				for k, _ := range dv {
-					if first {
-						r = append(r, ',')
-					} else {
-						first = true
-					}
-					r = append(r, k...)
-				}
-				return result{r, nil}
-			}
-			return resultNotFound
-		} else {
+		v, ok := d.m[key(args[0])]
+		if !ok {
 			return resultNotFound
 		}
+
+		dv, ok := v.(dict)
+		if !ok {
+			return resultNotFound
+		}
+
+		var r []byte
+		var first = false
+		for k := range dv {
+			if first {
+				r = append(r, ',')
+			} else {
+				first = true
+			}
+			r = append(r, k...)
+		}
+
+		return result{r, nil}
+
 	default:
 		return resultInvalidFormat
 	}

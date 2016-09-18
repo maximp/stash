@@ -2,6 +2,7 @@ package server
 
 import "log"
 
+// Constants for codes returned by network server
 const (
 	ServerOperationOk    = 200
 	ServerOperationError = 300

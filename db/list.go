@@ -11,18 +11,20 @@ func (v *list) get() result {
 }
 
 func (v *list) set(k []byte) result {
-	if i, err := strconv.ParseUint(string(k), 10, 64); err != nil {
+	i, err := strconv.ParseUint(string(k), 10, 64)
+	if err != nil {
 		return result{nil, err}
-	} else {
-		if i < uint64(len(v.v)) {
-			v.v = v.v[:i]
-		} else {
-			var n = make([][]byte, i)
-			copy(n, v.v)
-			v.v = n
-		}
-		return resultOk
 	}
+
+	if i < uint64(len(v.v)) {
+		v.v = v.v[:i]
+	} else {
+		var n = make([][]byte, i)
+		copy(n, v.v)
+		v.v = n
+	}
+
+	return resultOk
 }
 
 func (v *list) getKey(k []byte) result {
