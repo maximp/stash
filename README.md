@@ -1,3 +1,5 @@
+[![GoDoc](https://godoc.org/github.com/maximp/stash?status.svg)](https://godoc.org/github.com/maximp/stash)
+
 # stash
 Implementation of [test task](task.md) for Juno company
 
