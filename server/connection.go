@@ -53,6 +53,8 @@ func (c *connection) serve(handler Handler) {
 
 		result, err := handler(name, arg)
 		if err != nil {
+			elapsed := time.Since(start)
+			c.log(elapsed, ", ", line, ", ", err)
 			send(ServerOperationError, err.Error())
 			continue
 		}
